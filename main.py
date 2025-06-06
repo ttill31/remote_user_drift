@@ -2,6 +2,8 @@ from typing import Any
 from argparse import ArgumentParser, ArgumentError, Namespace
 from msal import PublicClientApplication
 
+from entra_user import EntraUser
+
 def main() -> None:
     pass
 
