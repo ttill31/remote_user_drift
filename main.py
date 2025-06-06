@@ -1,8 +1,12 @@
 from typing import Any
 from argparse import ArgumentParser, ArgumentError, Namespace
+from requests import get, post, Response
 from msal import PublicClientApplication
 
 from entra_user import EntraUser
+
+MS_GRAPH_URL_GET_GROUP_MEMBERS: str = r'https://graph.microsoft.com/v1.0/groups/{{group-id}}/members?$select=id,displayName'
+MS_GRAPH_URL_GET_AUDIT_LOGS: str = r"https://graph.microsoft.com/v1.0/auditLogs/signIns?$filter=(userId eq '{{user-id}}')&$select=ipAddress,location,createdDateTime&$top=10&$orderby=createdDateTime desc"
 
 def main() -> None:
     pass
