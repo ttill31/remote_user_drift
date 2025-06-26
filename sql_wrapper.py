@@ -70,19 +70,14 @@ class SQLWrapper:
             if cur: cur.close()
             return success
         
-    def get_all_employee_entries(self) -> list[dict[str, str]]:
-        entries: list[dict[str, str]] = list()
+    def get_all_employee_entries(self) -> dict[str, str]:
+        entries: dict[str, str] = dict()
         cur: sqlite3.Cursor | None = None
         
         try:
             if self._connection:
                 cur = self._connection.execute('SELECT emp_object, state FROM employee_data')
-                entries = [
-                    {
-                        'emp_object': entry['emp_object'],
-                        'state': entry['state']
-                    } for entry in cur.fetchall()
-                ]
+                entries = {entry['emp_object']: entry['state'] for entry in cur.fetchall()}
         except sqlite3.Error as err:
             print(f'Error: {err}')
         finally:
