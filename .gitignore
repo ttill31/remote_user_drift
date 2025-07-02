@@ -3,3 +3,4 @@ venv
 .vscode
 test.db
 project.env
+template.html
