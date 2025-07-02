@@ -1,6 +1,7 @@
 import sqlite3
 from typing import Any
 from os.path import exists
+from entra_user import EntraUser
 
 class SQLWrapper:
     def __init__(self, db_name: str) -> None:
@@ -69,7 +70,26 @@ class SQLWrapper:
         finally:
             if cur: cur.close()
             return success
-        
+
+    def update_employee_entry(self, emp_info: EntraUser) -> bool:
+        success: bool = True
+        cur: sqlite3.Cursor | None = None
+
+        try:
+            if self._connection:
+                sql_statement: str = '''UPDATE employee_data
+                                        SET state = ?
+                                        WHERE emp_object = ?'''
+                cur = self._connection.cursor()
+                cur.execute(sql_statement, (emp_info.states.pop(), emp_info.id)) # If we have multiple states go ahead and pop whatever the first one on the set is
+                self._connection.commit()
+        except sqlite3.Error as err:
+            print(f'Error: {err}')
+            success = False
+        finally:
+            if cur: cur.close()
+            return success
+
     def get_all_employee_entries(self) -> dict[str, str]:
         entries: dict[str, str] = dict()
         cur: sqlite3.Cursor | None = None
