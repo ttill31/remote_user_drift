@@ -6,6 +6,7 @@ class EntraUser:
     display_name: str
     ip_addresses: set[str]
     states: set[str]
+    alerts: list[str]
 
     def __hash__(self) -> int:
         return len(self.id) % len(self.display_name)
