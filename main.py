@@ -104,9 +104,10 @@ def create_new_entries(sql_obj: SQLWrapper, entra_user_info: set[EntraUser], db_
     success: bool = True
 
     for user in entra_user_info:
-        if user.id not in db_users:
+        if user.id not in db_users and len(user.states) > 0:
             state_copy: set[str] = user.states.copy()
-            if not sql_obj.create_employee_entry(user.id, state_copy.pop()): # User might have more than one state, so just pop a random one off the stack
+            user_state: str = state_copy.pop() if len(state_copy) > 0 else ''
+            if not sql_obj.create_employee_entry(user.id, user_state): # User might have more than one state, so just pop a random one off the stack
                 success = False
 
     return success
@@ -115,12 +116,15 @@ def update_employee_entries(sql_obj: SQLWrapper, entra_user_info: set[EntraUser]
     success: bool = True
 
     for user in entra_user_info:
-        if not sql_obj.update_employee_entry(user):
-            success = False
+        if len(user.states) > 0:
+            if not sql_obj.update_employee_entry(user):
+                success = False
 
     return success
 
 def detect_concerns(ipqs_token: str, entra_user_info: set[EntraUser], db_user_info: dict[str, str]) -> None:
+    acceptable_country_responses: set[str] = {'US', ''}
+
     for user in track(entra_user_info, description='Detecting security concerns...'):
         name: str = user.display_name
         previous_state: str = db_user_info.get(user.display_name, '')
@@ -150,6 +154,12 @@ def detect_concerns(ipqs_token: str, entra_user_info: set[EntraUser], db_user_in
                                         VPN Detected: {ip_results['vpn']}</br>
                                         TOR Detected: {ip_results['tor']}
                                         """)
+
+            detected_country: str = str(ip_results.get('country', ''))
+
+            if detected_country not in acceptable_country_responses:
+                user.alerts.append(f'{name} has been detected in {detected_country} instead of the United States.')
+
 
 def create_sql_object(database_file: str) -> SQLWrapper:
     if not exists(database_file):
@@ -309,7 +319,8 @@ def query_ipqs_for_ip_reputation(token: str, target_ip: str) -> dict[str, int | 
         'mobile': bool(data.get('mobile', False)),
         'proxy': bool(data.get('proxy', False)),
         'vpn': bool(data.get('vpn', False)),
-        'tor': bool(data.get('tor', False))
+        'tor': bool(data.get('tor', False)),
+        'country': data.get('country_code', '')
     }
 
 def get_args() -> dict[str, str] | None:
